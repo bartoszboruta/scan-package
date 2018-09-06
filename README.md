@@ -29,12 +29,24 @@ yarn add @bartoszboruta/scan-package
 
 The library accepts arguments:
 
-| Name           | Type         | Required | Description                                         |
-| :------------- | :----------- | :------- | :-------------------------------------------------- |
-| api_key        | string       | Required | access key, to get access contact us                |
-| file           | File image/* | Required | File from onChange event accepts all types of image |
-| previewHandler | function     | Optional | Callback that returns a base64 version of file      |
+| Name    | Type         | Required | Description                                         |
+| :------ | :----------- | :------- | :-------------------------------------------------- |
+| api_key | string       | Required | access key, to get access contact us                |
+| file    | File image/* | Required | File from onChange event accepts all types of image |
+| options | object       | Optional | See below                                           |
 
+#### options object: 
+```js
+{
+  coords: {   //GPS location, it helps us
+    long,     //longitude from navigator
+    lat,      //latitude from navigator
+  },
+  previewHandler: () => { //callback that returns base64 of image you scan
+    //... Your code here
+  } 
+}
+```
 
 To use that package you need to import it first:
 
@@ -45,13 +57,23 @@ import scanPackage from '@bartoszboruta/scan-package'
 Then you can use it on input type file onChange function:
 
 ```js
+const options = {
+  coords: {
+    long: -115.80666344,
+    lat: 37.234332396,
+  },
+  previewHandler: preview => {
+    console.log(preview) //base64 of uploading image
+  }
+}
+
 const handleChange = ({ target: { files } }) => {
   const file = files[0]
   if (!file) {
     throw new Error('File is required')
   }
 
-  scanPackage(api_key, file)
+  scanPackage(api_key, file, options)
     .then(url => console.log(url))
     .catch(error => console.log(error.message))
 }
@@ -64,3 +86,4 @@ const handleChange = ({ target: { files } }) => {
 ## Built with
 
 - [JavaScript Load Image](https://github.com/blueimp/JavaScript-Load-Image) - The library for resizing / rotating and downsizing images
+- [Platform](https://github.com/bestiejs/platform.js) - The library that takes data about device like os, os version, browser etc.

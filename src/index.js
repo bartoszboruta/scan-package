@@ -1,4 +1,3 @@
-import imageResize from './imageResize'
 import {
   SCAN_FETCH_DELAY,
   SCAN_FETCH_TIMES,
@@ -7,15 +6,20 @@ import {
   SCAN_STATUS_SUCCESS,
   SCAN_STATUS_FAILURE,
 } from './config'
+import imageResize from './imageResize'
+import deviceData from './deviceData'
 
 /**
  * Creates a scan
  * @param {file} file
  * @param {string} api_key
- * @callback {function} setPreview(optional) returns preview base64 minified image
+ * @callback {function} previewHandler(optional) returns preview base64 minified image
  * @return {promise}
  **/
-export default (api_key, file, setPreview = () => {}) => {
+export default (api_key, file, options = {}) => {
+  const previewHandler = options.previewHandler || function() {}
+  const coords = options.coords || {}
+
   let fetchTimer = SCAN_FETCH_TIMES
 
   const _getUploadUrl = () =>
@@ -56,6 +60,7 @@ export default (api_key, file, setPreview = () => {}) => {
       body: JSON.stringify({
         image_filename: file.name,
         image_uuid,
+        metadata: JSON.stringify(Object.assign({}, { coords }, deviceData)),
       }),
     }).then(response => {
       if (!response.ok) {
@@ -118,7 +123,7 @@ export default (api_key, file, setPreview = () => {}) => {
 
     imageResize(file)
       .then(({ image, preview }) => {
-        setPreview(preview)
+        previewHandler(preview)
         _getUploadUrl()
           .then(({ uuid, upload_url }) => {
             _uploadFile(image, upload_url).catch(error => {
