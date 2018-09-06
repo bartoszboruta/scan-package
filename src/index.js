@@ -12,11 +12,10 @@ import {
  * Creates a scan
  * @param {file} file
  * @param {string} api_key
- * @callback {function} setLoader(optional) calls passed function while image is processing
  * @callback {function} setPreview(optional) returns preview base64 minified image
  * @return {promise}
  **/
-export default (api_key, file, setLoader = () => {}, setPreview = () => {}) => {
+export default (api_key, file, setPreview = () => {}) => {
   let fetchTimer = SCAN_FETCH_TIMES
 
   const _getUploadUrl = () =>
@@ -30,7 +29,12 @@ export default (api_key, file, setLoader = () => {}, setPreview = () => {}) => {
         type: 'scan',
         filename: file.name,
       }),
-    }).then(data => data.json())
+    }).then(response => {
+      if (!response.ok) {
+        throw Error(response.statusText)
+      }
+      return response.json()
+    })
 
   const _uploadFile = (image, uploadUrl) => {
     return fetch(uploadUrl, {
@@ -53,9 +57,11 @@ export default (api_key, file, setLoader = () => {}, setPreview = () => {}) => {
         image_filename: file.name,
         image_uuid,
       }),
-    }).then(data => {
-      console.log(data)
-      return data.json()
+    }).then(response => {
+      if (!response.ok) {
+        throw Error(response.statusText)
+      }
+      return response.json()
     })
   }
 
@@ -65,7 +71,12 @@ export default (api_key, file, setLoader = () => {}, setPreview = () => {}) => {
         api_key,
       },
       method: 'GET',
-    }).then(data => data.json())
+    }).then(response => {
+      if (!response.ok) {
+        throw Error(response.statusText)
+      }
+      return response.json()
+    })
   }
 
   const _getRedirectUrl = (id, resolve, reject) => {
@@ -73,14 +84,12 @@ export default (api_key, file, setLoader = () => {}, setPreview = () => {}) => {
     return _fetchScan(id)
       .then(({ status, redirect_url }) => {
         if (redirect_url) {
-          setLoader(false)
           resolve(redirect_url)
         } else if (
           (!redirect_url && status === SCAN_STATUS_SUCCESS) ||
           !fetchTimer ||
           status === SCAN_STATUS_FAILURE
         ) {
-          setLoader(false)
           reject(new Error('Scan does not match'))
         } else {
           setTimeout(() => {
@@ -89,7 +98,6 @@ export default (api_key, file, setLoader = () => {}, setPreview = () => {}) => {
         }
       })
       .catch(error => {
-        setLoader(false)
         reject(error)
       })
   }
@@ -107,7 +115,6 @@ export default (api_key, file, setLoader = () => {}, setPreview = () => {}) => {
         new Error(`field "file" must be defined and be type of "object", gained ${typeof file}`),
       )
     }
-    setLoader(true)
 
     imageResize(file)
       .then(({ image, preview }) => {
@@ -115,7 +122,6 @@ export default (api_key, file, setLoader = () => {}, setPreview = () => {}) => {
         _getUploadUrl()
           .then(({ uuid, upload_url }) => {
             _uploadFile(image, upload_url).catch(error => {
-              setLoader(false)
               reject(error)
             })
             _createScan(uuid)
@@ -125,17 +131,14 @@ export default (api_key, file, setLoader = () => {}, setPreview = () => {}) => {
                 }, SCAN_FETCH_DELAY)
               })
               .catch(error => {
-                setLoader(false)
                 reject(error)
               })
           })
           .catch(error => {
-            setLoader(false)
             reject(error)
           })
       })
       .catch(error => {
-        setLoader(false)
         reject(error)
       })
   })
