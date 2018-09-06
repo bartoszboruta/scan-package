@@ -1,0 +1,32 @@
+{
+  "name": "documobi_package",
+  "version": "1.0.0",
+  "description": "",
+  "main": "./dist/index.js",
+  "scripts": {
+    "build": "babel src --out-dir dist",
+    "prepublish": "npm run build",
+    "test": "mocha --reporter spec"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kovson/documobi_package.git"
+  },
+  "author": "Selleo",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/kovson/documobi_package/issues"
+  },
+  "homepage": "https://github.com/kovson/documobi_package#readme",
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-es2015": "^6.24.1",
+    "chai": "^4.1.2",
+    "coveralls": "^3.0.2",
+    "istanbul": "^0.4.5",
+    "mocha": "^5.2.0"
+  },
+  "dependencies": {
+    "blueimp-load-image": "^2.19.0"
+  }
+}
